@@ -1,0 +1,271 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Calculadora extends JFrame {
+    private JComboBox<String> comboDesde, comboHacia;
+    private JTextField txtValor, txtResultado;
+    private JButton btnConvertir, btnLimpiar, btnIntercambiar;
+    private JTextArea areaHistorial;
+    private List<String> historial = new ArrayList<>();
+    private DecimalFormat df = new DecimalFormat("#,##0.##########");
+    
+    // Factores de conversión
+    private static final double BIT_A_BYTE = 1.0/8.0;
+    private static final double BYTE_A_BYTE = 1.0;
+    private static final double KB_A_BYTE = 1024.0;
+    private static final double MB_A_BYTE = 1024.0 * 1024.0;
+    private static final double GB_A_BYTE = 1024.0 * 1024.0 * 1024.0;
+    private static final double TB_A_BYTE = 1024.0 * 1024.0 * 1024.0 * 1024.0;
+    
+    // Colores
+    private final Color COLOR_FONDO = new Color(240, 245, 255);
+    private final Color COLOR_BOTONES = new Color(70, 130, 180);
+    private final Color COLOR_TEXTO_BOTONES = Color.BLACK; // Cambiado a negro
+    private final Color COLOR_PANEL = new Color(220, 230, 255);
+    private final Color COLOR_BORDE = new Color(100, 149, 237);
+    
+    public Calculadora() {
+        setTitle("Calculadora de Unidades");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(700, 550);
+        setLocationRelativeTo(null);
+        getContentPane().setBackground(COLOR_FONDO);
+        
+        // Panel principal con bordes
+        JPanel panelPrincipal = new JPanel(new BorderLayout(15, 15));
+        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        panelPrincipal.setBackground(COLOR_FONDO);
+        
+        // Panel de conversión - Usamos GridBagLayout para más control
+        JPanel panelConversion = new JPanel(new GridBagLayout());
+        panelConversion.setBackground(COLOR_PANEL);
+        panelConversion.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(COLOR_BORDE, 2),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        
+        String[] unidades = {"Bit", "Byte", "Kilobyte (KB)", "Megabyte (MB)", "Gigabyte (GB)", "Terabyte (TB)"};
+        comboDesde = new JComboBox<>(unidades);
+        comboHacia = new JComboBox<>(unidades);
+        comboHacia.setSelectedIndex(1);
+        
+        // Personalizar combobox
+        comboDesde.setBackground(Color.WHITE);
+        comboHacia.setBackground(Color.WHITE);
+        
+        txtValor = new JTextField(15);
+        txtResultado = new JTextField(15);
+        txtResultado.setEditable(false);
+        txtResultado.setBackground(new Color(245, 245, 245));
+        
+        // Configurar botones con colores
+        btnConvertir = crearBoton("Convertir", COLOR_BOTONES);
+        btnLimpiar = crearBoton("Limpiar", new Color(220, 20, 60));
+        btnIntercambiar = crearBoton("Intercambiar", new Color(60, 179, 113));
+        
+        // Primera fila: De [combo] A [combo]
+        gbc.gridx = 0; gbc.gridy = 0;
+        panelConversion.add(new JLabel("De:"), gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 0;
+        panelConversion.add(comboDesde, gbc);
+        
+        gbc.gridx = 2; gbc.gridy = 0;
+        panelConversion.add(new JLabel("A:"), gbc);
+        
+        gbc.gridx = 3; gbc.gridy = 0;
+        panelConversion.add(comboHacia, gbc);
+        
+        // Segunda fila: Valor [campo]
+        gbc.gridx = 0; gbc.gridy = 1;
+        panelConversion.add(new JLabel("Valor:"), gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 1;
+        gbc.gridwidth = 3;
+        panelConversion.add(txtValor, gbc);
+        gbc.gridwidth = 1;
+        
+        // Tercera fila: Resultado [campo]
+        gbc.gridx = 0; gbc.gridy = 2;
+        panelConversion.add(new JLabel("Resultado:"), gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 2;
+        gbc.gridwidth = 3;
+        panelConversion.add(txtResultado, gbc);
+        gbc.gridwidth = 1;
+        
+        // Cuarta fila: Botones
+        gbc.gridx = 0; gbc.gridy = 3;
+        panelConversion.add(btnIntercambiar, gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 3;
+        panelConversion.add(btnConvertir, gbc);
+        
+        gbc.gridx = 2; gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        panelConversion.add(btnLimpiar, gbc);
+        
+        // Panel de historial
+        JPanel panelHistorial = new JPanel(new BorderLayout(10, 10));
+        panelHistorial.setBackground(COLOR_PANEL);
+        panelHistorial.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(COLOR_BORDE, 2),
+                "Historial de Conversiones",
+                0, 0,
+                new Font("Arial", Font.BOLD, 12)
+            ),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        
+        areaHistorial = new JTextArea();
+        areaHistorial.setEditable(false);
+        areaHistorial.setBackground(new Color(245, 245, 245));
+        areaHistorial.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        JScrollPane scrollHistorial = new JScrollPane(areaHistorial);
+        panelHistorial.add(scrollHistorial, BorderLayout.CENTER);
+        
+        // Agregar paneles al frame principal
+        panelPrincipal.add(panelConversion, BorderLayout.NORTH);
+        panelPrincipal.add(panelHistorial, BorderLayout.CENTER);
+        
+        add(panelPrincipal);
+        
+        // Action listeners
+        btnConvertir.addActionListener(e -> convertir());
+        btnLimpiar.addActionListener(e -> limpiar());
+        btnIntercambiar.addActionListener(e -> intercambiarUnidades());
+        txtValor.addActionListener(e -> convertir());
+        
+        // Hacer que el botón Convertir sea el predeterminado
+        getRootPane().setDefaultButton(btnConvertir);
+    }
+    
+    private JButton crearBoton(String texto, Color colorFondo) {
+        JButton boton = new JButton(texto);
+        boton.setBackground(colorFondo);
+        boton.setForeground(COLOR_TEXTO_BOTONES); // Ahora será negro
+        boton.setFont(new Font("Tahoma", Font.BOLD, 14));
+        boton.setFocusPainted(false);
+        boton.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(colorFondo.darker(), 2),
+            BorderFactory.createEmptyBorder(8, 15, 8, 15)
+        ));
+        
+        // Efecto hover
+        boton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                boton.setBackground(colorFondo.brighter());
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                boton.setBackground(colorFondo);
+            }
+        });
+        
+        return boton;
+    }
+    
+    private void convertir() {
+        try {
+            double valor = Double.parseDouble(txtValor.getText());
+            if (valor < 0) {
+                JOptionPane.showMessageDialog(this, "Por favor ingrese un valor positivo", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            String unidadDesde = (String) comboDesde.getSelectedItem();
+            String unidadHacia = (String) comboHacia.getSelectedItem();
+            
+            double valorEnBytes = convertirABytes(valor, unidadDesde);
+            double resultado = convertirDesdeBytes(valorEnBytes, unidadHacia);
+            
+            txtResultado.setText(df.format(resultado));
+            
+            // Agregar al historial
+            String conversion = String.format("%s %s = %s %s", 
+                df.format(valor), unidadDesde, df.format(resultado), unidadHacia);
+            historial.add(conversion);
+            actualizarHistorial();
+            
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Por favor ingrese un valor numérico válido", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void intercambiarUnidades() {
+        int indexDesde = comboDesde.getSelectedIndex();
+        int indexHacia = comboHacia.getSelectedIndex();
+        
+        comboDesde.setSelectedIndex(indexHacia);
+        comboHacia.setSelectedIndex(indexDesde);
+        
+        // Si hay un resultado, intercambiar valores
+        if (!txtResultado.getText().isEmpty() && !txtValor.getText().isEmpty()) {
+            String temp = txtValor.getText();
+            txtValor.setText(txtResultado.getText());
+            txtResultado.setText(temp);
+        }
+    }
+    
+    private void actualizarHistorial() {
+        StringBuilder sb = new StringBuilder();
+        int inicio = Math.max(0, historial.size() - 10);
+        for (int i = historial.size() - 1; i >= inicio; i--) {
+            sb.append("• ").append(historial.get(i)).append("\n");
+        }
+        areaHistorial.setText(sb.toString());
+    }
+    
+    private double convertirABytes(double valor, String unidad) {
+        switch (unidad) {
+            case "Bit": return valor * BIT_A_BYTE;
+            case "Byte": return valor * BYTE_A_BYTE;
+            case "Kilobyte (KB)": return valor * KB_A_BYTE;
+            case "Megabyte (MB)": return valor * MB_A_BYTE;
+            case "Gigabyte (GB)": return valor * GB_A_BYTE;
+            case "Terabyte (TB)": return valor * TB_A_BYTE; // CORREGIDO
+            default: return valor;
+        }
+    }
+    
+    private double convertirDesdeBytes(double valorEnBytes, String unidad) {
+        switch (unidad) {
+            case "Bit": return valorEnBytes / BIT_A_BYTE;
+            case "Byte": return valorEnBytes / BYTE_A_BYTE;
+            case "Kilobyte (KB)": return valorEnBytes / KB_A_BYTE;
+            case "Megabyte (MB)": return valorEnBytes / MB_A_BYTE;
+            case "Gigabyte (GB)": return valorEnBytes / GB_A_BYTE;
+            case "Terabyte (TB)": return valorEnBytes / TB_A_BYTE; // CORREGIDO: TB_A_BYTE en lugar de TB_A_BORDE
+            default: return valorEnBytes;
+        }
+    }
+    
+    private void limpiar() {
+        txtValor.setText("");
+        txtResultado.setText("");
+        txtValor.requestFocus();
+    }
+    
+    public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        SwingUtilities.invokeLater(() -> {
+            new Calculadora().setVisible(true);
+        });
+    }
+}
