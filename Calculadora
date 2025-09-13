@@ -13,7 +13,6 @@ public class Calculadora extends JFrame {
     private List<String> historial = new ArrayList<>();
     private DecimalFormat df = new DecimalFormat("#,##0.##########");
     
-    // Factores de conversión
     private static final double BIT_A_BYTE = 1.0/8.0;
     private static final double BYTE_A_BYTE = 1.0;
     private static final double KB_A_BYTE = 1024.0;
@@ -21,7 +20,6 @@ public class Calculadora extends JFrame {
     private static final double GB_A_BYTE = 1024.0 * 1024.0 * 1024.0;
     private static final double TB_A_BYTE = 1024.0 * 1024.0 * 1024.0 * 1024.0;
     
-    // Colores
     private final Color COLOR_FONDO = new Color(240, 245, 255);
     private final Color COLOR_BOTONES = new Color(70, 130, 180);
     private final Color COLOR_TEXTO_BOTONES = Color.BLACK; // Cambiado a negro
@@ -35,12 +33,10 @@ public class Calculadora extends JFrame {
         setLocationRelativeTo(null);
         getContentPane().setBackground(COLOR_FONDO);
         
-        // Panel principal con bordes
         JPanel panelPrincipal = new JPanel(new BorderLayout(15, 15));
         panelPrincipal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         panelPrincipal.setBackground(COLOR_FONDO);
         
-        // Panel de conversión - Usamos GridBagLayout para más control
         JPanel panelConversion = new JPanel(new GridBagLayout());
         panelConversion.setBackground(COLOR_PANEL);
         panelConversion.setBorder(BorderFactory.createCompoundBorder(
@@ -56,8 +52,7 @@ public class Calculadora extends JFrame {
         comboDesde = new JComboBox<>(unidades);
         comboHacia = new JComboBox<>(unidades);
         comboHacia.setSelectedIndex(1);
-        
-        // Personalizar combobox
+    
         comboDesde.setBackground(Color.WHITE);
         comboHacia.setBackground(Color.WHITE);
         
@@ -66,12 +61,10 @@ public class Calculadora extends JFrame {
         txtResultado.setEditable(false);
         txtResultado.setBackground(new Color(245, 245, 245));
         
-        // Configurar botones con colores
         btnConvertir = crearBoton("Convertir", COLOR_BOTONES);
         btnLimpiar = crearBoton("Limpiar", new Color(220, 20, 60));
         btnIntercambiar = crearBoton("Intercambiar", new Color(60, 179, 113));
         
-        // Primera fila: De [combo] A [combo]
         gbc.gridx = 0; gbc.gridy = 0;
         panelConversion.add(new JLabel("De:"), gbc);
         
@@ -84,7 +77,6 @@ public class Calculadora extends JFrame {
         gbc.gridx = 3; gbc.gridy = 0;
         panelConversion.add(comboHacia, gbc);
         
-        // Segunda fila: Valor [campo]
         gbc.gridx = 0; gbc.gridy = 1;
         panelConversion.add(new JLabel("Valor:"), gbc);
         
@@ -93,7 +85,6 @@ public class Calculadora extends JFrame {
         panelConversion.add(txtValor, gbc);
         gbc.gridwidth = 1;
         
-        // Tercera fila: Resultado [campo]
         gbc.gridx = 0; gbc.gridy = 2;
         panelConversion.add(new JLabel("Resultado:"), gbc);
         
@@ -102,7 +93,6 @@ public class Calculadora extends JFrame {
         panelConversion.add(txtResultado, gbc);
         gbc.gridwidth = 1;
         
-        // Cuarta fila: Botones
         gbc.gridx = 0; gbc.gridy = 3;
         panelConversion.add(btnIntercambiar, gbc);
         
@@ -113,7 +103,6 @@ public class Calculadora extends JFrame {
         gbc.gridwidth = 2;
         panelConversion.add(btnLimpiar, gbc);
         
-        // Panel de historial
         JPanel panelHistorial = new JPanel(new BorderLayout(10, 10));
         panelHistorial.setBackground(COLOR_PANEL);
         panelHistorial.setBorder(BorderFactory.createCompoundBorder(
@@ -133,26 +122,23 @@ public class Calculadora extends JFrame {
         JScrollPane scrollHistorial = new JScrollPane(areaHistorial);
         panelHistorial.add(scrollHistorial, BorderLayout.CENTER);
         
-        // Agregar paneles al frame principal
         panelPrincipal.add(panelConversion, BorderLayout.NORTH);
         panelPrincipal.add(panelHistorial, BorderLayout.CENTER);
         
         add(panelPrincipal);
         
-        // Action listeners
         btnConvertir.addActionListener(e -> convertir());
         btnLimpiar.addActionListener(e -> limpiar());
         btnIntercambiar.addActionListener(e -> intercambiarUnidades());
         txtValor.addActionListener(e -> convertir());
         
-        // Hacer que el botón Convertir sea el predeterminado
         getRootPane().setDefaultButton(btnConvertir);
     }
     
     private JButton crearBoton(String texto, Color colorFondo) {
         JButton boton = new JButton(texto);
         boton.setBackground(colorFondo);
-        boton.setForeground(COLOR_TEXTO_BOTONES); // Ahora será negro
+        boton.setForeground(COLOR_TEXTO_BOTONES); 
         boton.setFont(new Font("Tahoma", Font.BOLD, 14));
         boton.setFocusPainted(false);
         boton.setBorder(BorderFactory.createCompoundBorder(
@@ -160,7 +146,6 @@ public class Calculadora extends JFrame {
             BorderFactory.createEmptyBorder(8, 15, 8, 15)
         ));
         
-        // Efecto hover
         boton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -192,7 +177,6 @@ public class Calculadora extends JFrame {
             
             txtResultado.setText(df.format(resultado));
             
-            // Agregar al historial
             String conversion = String.format("%s %s = %s %s", 
                 df.format(valor), unidadDesde, df.format(resultado), unidadHacia);
             historial.add(conversion);
@@ -210,7 +194,6 @@ public class Calculadora extends JFrame {
         comboDesde.setSelectedIndex(indexHacia);
         comboHacia.setSelectedIndex(indexDesde);
         
-        // Si hay un resultado, intercambiar valores
         if (!txtResultado.getText().isEmpty() && !txtValor.getText().isEmpty()) {
             String temp = txtValor.getText();
             txtValor.setText(txtResultado.getText());
@@ -234,7 +217,7 @@ public class Calculadora extends JFrame {
             case "Kilobyte (KB)": return valor * KB_A_BYTE;
             case "Megabyte (MB)": return valor * MB_A_BYTE;
             case "Gigabyte (GB)": return valor * GB_A_BYTE;
-            case "Terabyte (TB)": return valor * TB_A_BYTE; // CORREGIDO
+            case "Terabyte (TB)": return valor * TB_A_BYTE;
             default: return valor;
         }
     }
@@ -246,7 +229,7 @@ public class Calculadora extends JFrame {
             case "Kilobyte (KB)": return valorEnBytes / KB_A_BYTE;
             case "Megabyte (MB)": return valorEnBytes / MB_A_BYTE;
             case "Gigabyte (GB)": return valorEnBytes / GB_A_BYTE;
-            case "Terabyte (TB)": return valorEnBytes / TB_A_BYTE; // CORREGIDO: TB_A_BYTE en lugar de TB_A_BORDE
+            case "Terabyte (TB)": return valorEnBytes / TB_A_BYTE; 
             default: return valorEnBytes;
         }
     }
@@ -258,11 +241,6 @@ public class Calculadora extends JFrame {
     }
     
     public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         
         SwingUtilities.invokeLater(() -> {
             new Calculadora().setVisible(true);
