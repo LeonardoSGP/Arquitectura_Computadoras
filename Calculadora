@@ -22,7 +22,7 @@ public class Calculadora extends JFrame {
     
     private final Color COLOR_FONDO = new Color(240, 245, 255);
     private final Color COLOR_BOTONES = new Color(70, 130, 180);
-    private final Color COLOR_TEXTO_BOTONES = Color.BLACK; // Cambiado a negro
+    private final Color COLOR_TEXTO_BOTONES = Color.BLACK;
     private final Color COLOR_PANEL = new Color(220, 230, 255);
     private final Color COLOR_BORDE = new Color(100, 149, 237);
     
